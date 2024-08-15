@@ -34,19 +34,20 @@ func main() {
 
 	// Extract request URL path from request
 	urlPath := string(buf[:n])
-	fmt.Println("Request URL: ", urlPath)
 
-  // Respond with 404 Not Found if request path is not "GET / HTTP/1.1"
-  // or if the request path does not start with "GET /echo/"
-  if !strings.HasPrefix(urlPath, "GET / HTTP/1.1") && !strings.HasPrefix(urlPath, "GET /echo/") {
-    conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
-    return
-  }
+	// Respond with 404 Not Found if request path is not "GET / HTTP/1.1"
+	// or if the request path does not start with "GET /echo/"
+	if !strings.HasPrefix(urlPath, "GET / HTTP/1.1") && !strings.HasPrefix(urlPath, "GET /echo/") {
+		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+		return
+	}
 
 	// Respond with 200 OK and the response body set to the given string
-	// and with a Content-Type and Content-Length header
-	// e.g. if the request was "GET /echo/hello" the response body would be "hello"
-	responseBody := strings.TrimPrefix(urlPath, "GET /echo/")
+	// and with a Content-Type and Content-Length header (should represent the lenght of the response body in bytes)
+	// e.g. if the request was "GET /echo/hello HTTP/1.1 ..." the response body would be "hello"
+  // responseBody should only contain a single string
+  requestParts := strings.Split(urlPath, " ")
+  responseBody := strings.TrimPrefix(requestParts[1], "/echo/")
 	conn.Write([]byte("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " +
 		strconv.Itoa(len(responseBody)) +
 		"\r\n\r\n" + responseBody))
