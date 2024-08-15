@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -35,14 +36,20 @@ func main() {
 	urlPath := string(buf[:n])
 	fmt.Println("Request URL: ", urlPath)
 
-	// Respond with 404 Not Found if request path is not "GET / HTTP/1.1"
-	if !strings.HasPrefix(urlPath, "GET / HTTP/1.1") {
-		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
-		return
-	}
+  // Respond with 404 Not Found if request path is not "GET / HTTP/1.1"
+  // or if the request path does not start with "GET /echo/"
+  if !strings.HasPrefix(urlPath, "GET / HTTP/1.1") && !strings.HasPrefix(urlPath, "GET /echo/") {
+    conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+    return
+  }
 
-	// Respond to HTTP request with a 200 OK
-	conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+	// Respond with 200 OK and the response body set to the given string
+	// and with a Content-Type and Content-Length header
+	// e.g. if the request was "GET /echo/hello" the response body would be "hello"
+	responseBody := strings.TrimPrefix(urlPath, "GET /echo/")
+	conn.Write([]byte("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " +
+		strconv.Itoa(len(responseBody)) +
+		"\r\n\r\n" + responseBody))
 
 	conn.Close()
 }
